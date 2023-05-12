@@ -1,0 +1,23 @@
+#!/bin/bash
+
+read -r -d '' REQUEST <<EOF
+###{JSON_REQUEST}
+EOF
+
+# Read proto dirs into a bash array, so that it's easy to deal with spaces
+IFS=$'\n' read -d '' -r -a PROTO_DIRS <<EOF
+###{PROTO_DIRS}
+EOF
+
+PROTO_IMPORT_CMD=()
+for dir in "${PROTO_DIRS[@]}"; do
+  PROTO_IMPORT_CMD+=("-import-path")
+  PROTO_IMPORT_CMD+=("$dir")
+done
+
+grpcurl  -plaintext \
+   "${PROTO_IMPORT_CMD[@]}" \
+   -proto ###{SERVICE_PROTO_FILE} \
+   -d "$REQUEST" \
+   ###{hostname of the gRPC server} \
+   ###{FULL_METHOD_NAME}
