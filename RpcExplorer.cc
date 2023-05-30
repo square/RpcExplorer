@@ -1072,8 +1072,9 @@ public:
 
     createHelpWindow();
     cur_object = setCDKFocusCurrent(cdk_screen, proto_cdk_fields[index]->field_cdk_obj);
-    setFocus(cur_object);
-
+    if (cur_object) {
+      setFocus(cur_object);
+    }
   };
 
   virtual CDKOBJS* getCDKActiveObject() {
