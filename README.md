@@ -1,3 +1,11 @@
+# NB
+
+If you are a Square employee, you want to use the install and usage
+instructions from the [internal version](https://github.com/squareup/RpcExplorer)
+because it comes with Square-specific batteries included: an internal homebrew
+tap, wrapper script, and set of request templates that work with Square's
+environment.  The core functionality is equivalent to this version.
+
 # Rpc Explorer
 
 This CLI tool allows a user to search for service methods defined in protobuf
