@@ -1810,6 +1810,12 @@ void runCursesInterface(Options& options,
   /* Reduce the escape delay so that Esc is more snappy.  */
   setenv("ESCDELAY","1", 1);
   initscr();
+
+  static const char* should_use_default_colors = getenv("RPC_EXPLORER_USE_DEFAULT_COLORS");
+  if (should_use_default_colors != NULL && strcmp("true", tolower(std::string(should_use_default_colors)).c_str()) == 0) {
+    use_default_colors();
+  }
+
   getmaxyx(stdscr, num_rows, num_cols);
   ensureMinWindowSize();
 
