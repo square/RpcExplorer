@@ -999,11 +999,15 @@ public:
           system(cmd_buffer);
           // Execute script
           snprintf(cmd_buffer, sizeof(cmd_buffer), "'%s' 2>&1", path.c_str());
+          debugMsg("Start executing generated script %s.\n", cmd_buffer);
           std::string cmd_output = exec_cmd(cmd_buffer);
+          debugMsg("Finished executing script.\n");
+          debugMsg("Script output:\n'''\n%s\n'''\n", cmd_output.c_str());
           // Clean up script
           snprintf(cmd_buffer, sizeof(cmd_buffer), "rm -f '%s'", path.c_str());
           system(cmd_buffer);
           showInfoPanel(cdk_screen, cmd_output);
+          debugMsg("Finished showing command output.");
         } else if (proto_cdk_field->field_cdk_type == EXPORT_BUTTON) {
           std::string path =
               exportScript(options.request_template, cdk_screen, method_descriptor, root_proto_cdk_fields, options.protoPaths, 1);
@@ -1855,6 +1859,7 @@ void runCursesInterface(Options& options,
         break;
 
       default:
+        debugMsg("Handling input (key_code = %d, function_key = %d)", key_code, function_key);
         if (page_stack.back()->handleInput(key_code, function_key)) {
           delete page_stack.back();
           page_stack.pop_back();
