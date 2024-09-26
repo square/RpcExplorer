@@ -151,15 +151,21 @@ struct ProtoCDKField {
  */
 static int debugMsg(const char *fmt, ...)
 {
-  static const char* path = getenv("DEBUG_FILE");
+  const char* path = getenv("DEBUG_FILE");
   if (path) {
     FILE* file = fopen(path, "a");
-    char buffer[4096];
+    char* buffer;
     va_list args;
     va_start(args, fmt);
-    int rc = vsnprintf(buffer, sizeof(buffer), fmt, args);
+    int rc = vasprintf(&buffer, fmt, args);
     va_end(args);
+    if (rc == -1 || buffer == NULL) {
+      fputs("debugMsg: vasprintf failed to allocate buffer for format string.", file);
+      fclose(file);
+      return 1;
+    }
     rc = fputs(buffer, file);
+    free(buffer);
     fclose(file);
     return rc;
   }
