@@ -757,8 +757,11 @@ void showInfoPanel(CDKSCREEN* cdk_screen, const std::string& info) {
   CDKSWINDOW* window = newCDKSwindow(cdk_screen, LEFT, TOP, num_rows - ROWS_FOR_ONSCREEN_HELP,
       num_cols / 2, "", 100000, 1, 0);
   showMultilineMessage(window, info);
+  debugMsg("showInfoPanel: after showMultilineMessage.\n");
   activateCDKSwindow(window, NULL);
+  debugMsg("showInfoPanel: after activateCDKSwindow.\n");
   destroyCDKSwindow(window);
+  debugMsg("showInfoPanel: after destroyCDKSwindow.\n");
   // Restore previous contents of screen.
   refreshCDKScreen (cdk_screen);
 }
