@@ -1012,7 +1012,12 @@ public:
           snprintf(cmd_buffer, sizeof(cmd_buffer), "chmod u+x '%s'", path.c_str());
           system(cmd_buffer);
           // Execute script
-          snprintf(cmd_buffer, sizeof(cmd_buffer), "'%s' 2>&1", path.c_str());
+          // Redirect stdin to prevent subprocesses from accessing our tty and
+          // setting the foreground process group ID.
+          // When subprocesses do this, RpcExplorer can appear to become
+          // unresponsive because they steal input and signals from
+          // RpcExplorer.
+          snprintf(cmd_buffer, sizeof(cmd_buffer), "'%s' 2>&1 < /dev/null", path.c_str());
           debugMsg("Start executing generated script %s.\n", cmd_buffer);
           std::string cmd_output = exec_cmd(cmd_buffer);
           debugMsg("Finished executing script.\n");
