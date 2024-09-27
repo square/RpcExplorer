@@ -478,6 +478,7 @@ void populateMessageData(Message* message, const std::vector<ProtoCDKField*> fie
 }
 
 void showMultilineMessage(CDKSWINDOW* display, const std::string& message) {
+  static const std::unordered_set<char> special_chars {'\\', '<' };
   cleanCDKSwindow(display);
   std::string current_line;
   std::vector<char*> lines;
@@ -486,6 +487,19 @@ void showMultilineMessage(CDKSWINDOW* display, const std::string& message) {
       lines.push_back(strdup(current_line.c_str()));
       current_line.clear();
     } else {
+      // Escape special characters that are special to either cdk or curses so
+      // that they will display literally.
+      // So far, the only known characters are `<`, `\` and `/`, but there may
+      // be others lurking.
+      if (special_chars.find(message[i]) != special_chars.end()) {
+        current_line += '\\';
+      }
+
+      // Characters that follows immediately after a `<` character appear to
+      // vanish unless escaped.
+      if (i > 0 && message[i-1] == '<') {
+        current_line += '\\';
+      }
       current_line += message[i];
     }
   }
