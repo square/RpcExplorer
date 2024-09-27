@@ -492,6 +492,11 @@ void showMultilineMessage(CDKSWINDOW* display, const std::string& message) {
   if (current_line.size() > 0) {
       lines.push_back(strdup(current_line.c_str()));
   }
+
+  for (char* line: lines) {
+    debugMsg("showMultilineMessage: %s\n", line);
+  }
+
   if (lines.size() > 0) {
     setCDKSwindowContents(display, lines.data(), lines.size());
   }
