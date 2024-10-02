@@ -19,8 +19,10 @@
 #include <google/protobuf/stubs/strutil.h>
 #include <cdk.h>
 #include <cdk/cdk_objs.h>
+#include <chrono>
 #include <unordered_set>
 #include <unordered_map>
+#include <set>
 
 using namespace google::protobuf::compiler;
 using namespace google::protobuf::util;
@@ -44,10 +46,23 @@ static void unsetFocus(CDKOBJS* obj);
 int num_rows, num_cols;
 class RequestBuilderPage;
 
+// Track the proto files containing the methods that we entered the request
+// builder for. If RpcExplorer was started without proto file arguments and
+// this set is non-empty when RpcExplorer exits, then RpcExplorer will write
+// advice for faster loading.
+std::set<std::string> proto_files_of_used_methods;
+
 #define ROWS_FOR_ONSCREEN_HELP 8
 
 // Mostly for convenience, although this is technically bad practice.
 static DynamicMessageFactory dynamic_message_factory;
+
+// True means that we offer advice about what proto files to include to make
+// RpcExplorer load faster.  Global for use in signal handler.
+bool offer_advice = false;
+
+// Global to help with offering advice in the signal handler.
+std::vector<const char*> proto_paths_for_advice;
 
 /**
  * Command line options for this program.
@@ -870,6 +885,7 @@ public:
       : method_descriptor(method_descriptor)
       , input_descriptor(method_descriptor->input_type())
       , options(options) {
+    proto_files_of_used_methods.insert(method_descriptor->file()->name());
     cdk_screen = initCDKScreen (NULL);
     // Initially, the virtual and physical screen sizes are the same.
     min_row_to_display = 0;
@@ -1915,8 +1931,13 @@ void runCursesInterface(Options& options,
 int main(int argc, char** argv){
   Options options = parseArguments(argc, argv);
 
+  auto start_time = std::chrono::high_resolution_clock::now();
   std::vector<std::string> allFilenames;
   if (options.protoFiles.empty()) {
+    offer_advice = getenv("RPC_EXPLORER_NO_ADVICE") == NULL;
+    if (offer_advice) {
+      proto_paths_for_advice = options.protoPaths;
+    }
     // If the user did not specify proto files, then parse all file names from
     // the filesystem, since SourceTreeDescriptorDatabase does not appear to
     // implement FindAllFileNames.
@@ -1989,7 +2010,35 @@ int main(int argc, char** argv){
     }
   }
 
-  // Install signal handler so that we exit with code 0 on Control-C.
-  signal(SIGINT, [](int sig_num) {endCDK(); exit(0); });
+  auto end_time = std::chrono::high_resolution_clock::now();
+  // Store the time spent loading protos so we can use it for giving advice
+  // later.
+  static std::chrono::duration<double> time_spent_loading_protos = end_time - start_time;
+
+  // Install signal handler so that we exit with code 0 on Control-C and print advice.
+  signal(SIGINT, [](int sig_num) {
+    endCDK();
+    if (offer_advice && !proto_files_of_used_methods.empty()) {
+      std::cerr
+        << "RpcExplorer spent "
+        << time_spent_loading_protos.count() << " seconds "
+        << "loading all of the proto files in the following directories:\n"
+        << std::endl;
+      for (const char* proto_path : proto_paths_for_advice) {
+        std::cerr << "\t" << proto_path << std::endl;
+      }
+      std::cerr
+        << "\nYou used protos only from the following files:\n"
+        << std::endl;
+      for (std::string proto_file : proto_files_of_used_methods) {
+        std::cerr << "\t" << proto_file << std::endl;
+      }
+      std::cerr << "\nTo make RpcExplorer load only these proto files,\n"
+        "append them as trailing arguments to your next invocation.\n\n"
+        << "To stop seeing this message, set RPC_EXPLORER_NO_ADVICE."
+        << std::endl;
+    }
+    exit(0);
+  });
   runCursesInterface(options, methodDescriptors);
 }
