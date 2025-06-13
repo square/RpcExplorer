@@ -16,7 +16,8 @@ pushd ncurses-6.3
 popd
 
 pushd "${CDK_VERSION}"
-./configure --prefix=`pwd`/dist --with-curses-dir=`pwd`/../ncurses-6.3/dist --with-ncursesw
+CPPFLAGS="-I`pwd`/../ncurses-6.3/dist/include/ncursesw"  \
+  ./configure --prefix=`pwd`/dist --with-curses-dir=`pwd`/../ncurses-6.3/dist --with-ncursesw
 make && make install
 popd
 

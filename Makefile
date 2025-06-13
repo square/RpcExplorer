@@ -2,7 +2,7 @@
 UNAME_S := $(shell uname -s)
 CDK_VERSION := cdk-5.0-20230201
 ifeq ($(UNAME_S),Darwin)
-CXXFLAGS ?= -Ilib/$(CDK_VERSION)/dist/include -Ilib/ncurses-6.3/dist/include -Ilib/protobuf-3.21.2/dist/include
+CXXFLAGS ?= -Ilib/$(CDK_VERSION)/dist/include -Ilib/ncurses-6.3/dist/include -Ilib/ncurses-6.3/dist/include/ncursesw -Ilib/protobuf-3.21.2/dist/include
 LDLIBS ?= lib/protobuf-3.21.2/dist/lib/libprotobuf.a lib/$(CDK_VERSION)/dist/lib/libcdkw.a lib/ncurses-6.3/dist/lib/libncursesw_g.a
 endif
 
